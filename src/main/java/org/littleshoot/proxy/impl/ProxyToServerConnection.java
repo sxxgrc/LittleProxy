@@ -7,48 +7,16 @@ import io.netty.channel.*;
 import io.netty.channel.ChannelHandler.Sharable;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
-import io.netty.handler.codec.http.FullHttpResponse;
-import io.netty.handler.codec.http.HttpContent;
-import io.netty.handler.codec.http.HttpMessage;
-import io.netty.handler.codec.http.HttpObject;
-import io.netty.handler.codec.http.HttpObjectAggregator;
-import io.netty.handler.codec.http.HttpRequest;
-import io.netty.handler.codec.http.HttpRequestEncoder;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseDecoder;
-import io.netty.handler.codec.http.HttpResponseEncoder;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.codec.http.HttpUtil;
-import io.netty.handler.codec.http.HttpVersion;
-import io.netty.handler.codec.http.LastHttpContent;
-import io.netty.handler.codec.socksx.v4.DefaultSocks4CommandRequest;
-import io.netty.handler.codec.socksx.v4.Socks4ClientDecoder;
-import io.netty.handler.codec.socksx.v4.Socks4ClientEncoder;
-import io.netty.handler.codec.socksx.v4.Socks4CommandResponse;
-import io.netty.handler.codec.socksx.v4.Socks4CommandStatus;
-import io.netty.handler.codec.socksx.v4.Socks4CommandType;
-import io.netty.handler.codec.socksx.v5.DefaultSocks5CommandRequest;
-import io.netty.handler.codec.socksx.v5.DefaultSocks5InitialRequest;
-import io.netty.handler.codec.socksx.v5.DefaultSocks5PasswordAuthRequest;
-import io.netty.handler.codec.socksx.v5.Socks5AddressType;
-import io.netty.handler.codec.socksx.v5.Socks5AuthMethod;
-import io.netty.handler.codec.socksx.v5.Socks5ClientEncoder;
-import io.netty.handler.codec.socksx.v5.Socks5CommandResponse;
-import io.netty.handler.codec.socksx.v5.Socks5CommandResponseDecoder;
-import io.netty.handler.codec.socksx.v5.Socks5CommandStatus;
-import io.netty.handler.codec.socksx.v5.Socks5CommandType;
-import io.netty.handler.codec.socksx.v5.Socks5InitialResponse;
-import io.netty.handler.codec.socksx.v5.Socks5InitialResponseDecoder;
-import io.netty.handler.codec.socksx.v5.Socks5PasswordAuthResponse;
-import io.netty.handler.codec.socksx.v5.Socks5PasswordAuthResponseDecoder;
-import io.netty.handler.codec.socksx.v5.Socks5PasswordAuthStatus;
-import io.netty.handler.proxy.ProxyConnectException;
 import io.netty.handler.codec.haproxy.HAProxyMessage;
 import io.netty.handler.codec.http.*;
+import io.netty.handler.codec.socksx.v4.*;
+import io.netty.handler.codec.socksx.v5.*;
+import io.netty.handler.proxy.ProxyConnectException;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.resolver.AddressResolverGroup;
 import io.netty.resolver.DefaultAddressResolverGroup;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ReferenceCounted;
 import io.netty.util.concurrent.Future;
 import org.littleshoot.proxy.*;
@@ -534,6 +502,7 @@ public class ProxyToServerConnection extends ProxyConnection<HttpResponse> {
         // analyze response headers for whether or not to close the
         // connection (which may not happen for a while for large, chunked
         // responses, for example).
+        ReferenceCountUtil.safeRelease(currentHttpResponse);
         currentHttpResponse = ProxyUtils.copyMutableResponseFields(response);
     }
 
