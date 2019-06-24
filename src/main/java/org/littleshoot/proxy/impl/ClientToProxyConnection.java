@@ -11,7 +11,6 @@ import io.netty.handler.codec.http.*;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
 import io.netty.util.ReferenceCountUtil;
-import io.netty.util.ReferenceCounted;
 import io.netty.util.concurrent.Future;
 import org.apache.commons.lang3.StringUtils;
 import org.littleshoot.proxy.*;
@@ -411,9 +410,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
             HttpRequest currentHttpRequest, HttpResponse currentHttpResponse,
             HttpObject httpObject) {
         // we are sending a response to the client, so we are done handling this request
-        if (this.currentRequest instanceof ReferenceCounted && ((ReferenceCounted) this.currentRequest).refCnt() > 0) {
-            ReferenceCountUtil.release(this.currentRequest);
-        }
+        ReferenceCountUtil.safeRelease(this.currentRequest);
         this.currentRequest = null;
 
         httpObject = filters.serverToProxyResponse(httpObject);
