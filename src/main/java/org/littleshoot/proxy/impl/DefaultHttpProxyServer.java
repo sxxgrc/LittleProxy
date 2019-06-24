@@ -8,6 +8,7 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.channel.udt.nio.NioUdtProvider;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
+import io.netty.util.ResourceLeakDetector;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import org.littleshoot.proxy.*;
 import org.slf4j.Logger;
@@ -495,6 +496,8 @@ public class DefaultHttpProxyServer implements HttpProxyServer {
     }
 
     private void doStart() {
+        ResourceLeakDetector.setLevel(ResourceLeakDetector.Level.PARANOID);
+
         ServerBootstrap serverBootstrap = new ServerBootstrap().group(
                 serverGroup.getClientToProxyAcceptorPoolForTransport(transportProtocol),
                 serverGroup.getClientToProxyWorkerPoolForTransport(transportProtocol));
