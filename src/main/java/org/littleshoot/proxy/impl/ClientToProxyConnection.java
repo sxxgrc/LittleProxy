@@ -411,7 +411,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
             HttpRequest currentHttpRequest, HttpResponse currentHttpResponse,
             HttpObject httpObject) {
         // we are sending a response to the client, so we are done handling this request
-        if (this.currentRequest instanceof ReferenceCounted && ((ByteBuf) this.currentRequest).refCnt() > 0) {
+        if (this.currentRequest instanceof ReferenceCounted && ((ReferenceCounted) this.currentRequest).refCnt() > 0) {
             ReferenceCountUtil.release(this.currentRequest);
         }
         this.currentRequest = null;

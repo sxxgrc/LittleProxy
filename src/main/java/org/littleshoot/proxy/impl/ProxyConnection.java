@@ -247,7 +247,7 @@ abstract class ProxyConnection<I extends HttpObject> extends
             LOG.debug("Wrote: {}", msg);
 
             // Try to dereference message if its reference count is being monitored.
-            if (msg instanceof ReferenceCounted && ((ByteBuf) msg).refCnt() > 0) {
+            if (msg instanceof ReferenceCounted && ((ReferenceCounted) msg).refCnt() > 0) {
                 ReferenceCountUtil.release(msg);
             }
         }
