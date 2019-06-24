@@ -7,6 +7,7 @@ import io.netty.handler.codec.haproxy.HAProxyMessage;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.ReferenceCountUtil;
 import io.netty.util.ReferenceCounted;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
@@ -244,6 +245,11 @@ abstract class ProxyConnection<I extends HttpObject> extends
             }
         } finally {
             LOG.debug("Wrote: {}", msg);
+
+            // Try to dereference message if its reference count is being monitored.
+            if (msg instanceof ReferenceCounted && ((ByteBuf) msg).refCnt() > 0) {
+                ReferenceCountUtil.release(msg);
+            }
         }
     }
 
