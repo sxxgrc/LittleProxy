@@ -694,6 +694,9 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
         if (serverConnection.isSaturated()) {
             LOG.info("Connection to server became saturated, stopping reading");
             stopReading();
+            synchronized (this.channel) {
+                this.channel.flush();
+            }
         }
     }
 
