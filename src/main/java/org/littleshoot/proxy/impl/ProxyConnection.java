@@ -465,7 +465,7 @@ abstract class ProxyConnection<I extends HttpObject> extends
      * @return {@code Future<Void>} for when we're done disconnecting. If we weren't
      *         connected, this returns null.
      */
-    Future<Void> disconnect() {
+    Future<Void>    disconnect() {
         if (channel == null) {
             return null;
         } else {
