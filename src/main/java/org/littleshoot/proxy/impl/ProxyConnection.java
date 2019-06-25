@@ -225,7 +225,7 @@ abstract class ProxyConnection<I extends HttpObject> extends
      * @param msg
      */
     void write(Object msg) {
-        if (msg instanceof ReferenceCounted && ((ReferenceCounted) msg).refCnt() == 0) {
+        if (msg instanceof ReferenceCounted) {
             LOG.debug("Retaining reference counted message");
             ((ReferenceCounted) msg).retain();
         }
