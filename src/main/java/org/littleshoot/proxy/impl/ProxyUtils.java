@@ -7,6 +7,8 @@ import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.udt.nio.NioUdtProvider;
 import io.netty.handler.codec.http.*;
+import io.netty.util.ReferenceCountUtil;
+import io.netty.util.ReferenceCounted;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -630,6 +632,17 @@ public class ProxyUtils {
                     headers.add(HttpHeaders.Names.ACCEPT_ENCODING, encoding);
                 }
             }
+        }
+    }
+
+    /**
+     * Releases an HTTP object safely, ensuring that it has a reference to release.
+     *
+     * @param httpObject : The object to release.
+     */
+    public static void releaseHTTPObject(HttpObject httpObject) {
+        if (httpObject instanceof ReferenceCounted && ((ReferenceCounted) httpObject).refCnt() > 0) {
+            ReferenceCountUtil.safeRelease(httpObject);
         }
     }
 }

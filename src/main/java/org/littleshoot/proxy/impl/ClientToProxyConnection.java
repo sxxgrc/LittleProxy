@@ -833,7 +833,9 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
         }
 
         // Release the old request and response if necessary.
-        ReferenceCountUtil.safeRelease(currentHttpRequest);
+        ProxyUtils.releaseHTTPObject(currentHttpRequest);
+        ProxyUtils.releaseHTTPObject(currentHttpResponse);
+        ProxyUtils.releaseHTTPObject(httpObject);
     }
 
     private void forceDisconnect(ProxyToServerConnection serverConnection) {
