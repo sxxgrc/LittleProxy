@@ -7,6 +7,7 @@ import io.netty.handler.codec.haproxy.HAProxyMessage;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.ssl.SslHandler;
 import io.netty.handler.timeout.IdleStateEvent;
+import io.netty.util.ReferenceCounted;
 import io.netty.util.concurrent.Future;
 import io.netty.util.concurrent.Promise;
 import org.littleshoot.proxy.HttpFilters;
@@ -224,10 +225,10 @@ abstract class ProxyConnection<I extends HttpObject> extends
      * @param msg
      */
     void write(Object msg) {
-//        if (msg instanceof ReferenceCounted) {
-//            LOG.debug("Retaining reference counted message");
-//            ((ReferenceCounted) msg).retain();
-//        }
+        if (msg instanceof ReferenceCounted && ((ReferenceCounted) msg).refCnt() == 0) {
+            LOG.debug("Retaining reference counted message");
+            ((ReferenceCounted) msg).retain();
+        }
 
         doWrite(msg);
     }
