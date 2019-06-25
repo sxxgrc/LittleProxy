@@ -694,9 +694,6 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
         if (serverConnection.isSaturated()) {
             LOG.info("Connection to server became saturated, stopping reading");
             stopReading();
-            synchronized (this.channel) {
-                this.channel.flush();
-            }
         }
     }
 
@@ -834,6 +831,11 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
             LOG.debug("Closing connection to client after writes");
             disconnect();
         }
+
+        // Release the old request and response if necessary.
+        ReferenceCountUtil.safeRelease(currentHttpRequest);
+        ReferenceCountUtil.safeRelease(currentHttpResponse);
+        ReferenceCountUtil.safeRelease(httpObject);
     }
 
     private void forceDisconnect(ProxyToServerConnection serverConnection) {
