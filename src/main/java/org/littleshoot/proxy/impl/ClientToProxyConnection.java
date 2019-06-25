@@ -831,11 +831,6 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
             LOG.debug("Closing connection to client after writes");
             disconnect();
         }
-
-        // Release the old request and response if necessary.
-        ProxyUtils.releaseHTTPObject(currentHttpRequest);
-        ProxyUtils.releaseHTTPObject(currentHttpResponse);
-        ProxyUtils.releaseHTTPObject(httpObject);
     }
 
     private void forceDisconnect(ProxyToServerConnection serverConnection) {
