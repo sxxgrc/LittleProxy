@@ -10,7 +10,6 @@ import io.netty.handler.codec.haproxy.HAProxyMessageDecoder;
 import io.netty.handler.codec.http.*;
 import io.netty.handler.timeout.IdleStateHandler;
 import io.netty.handler.traffic.GlobalTrafficShapingHandler;
-import io.netty.util.ReferenceCountUtil;
 import io.netty.util.concurrent.Future;
 import org.apache.commons.lang3.StringUtils;
 import org.littleshoot.proxy.*;
@@ -119,7 +118,8 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
     /**
      * The current HTTP request that this connection is currently servicing.
      */
-    private volatile HttpRequest currentRequest;
+//    private volatile HttpRequest currentRequest;
+    private volatile boolean isCurrentRequestHead;
 
     private final ClientDetails clientDetails = new ClientDetails();
 
@@ -208,11 +208,12 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      */
     private ConnectionState doReadHTTPInitial(HttpRequest httpRequest) {
         // Make a copy of the original request
-        this.currentRequest = copy(httpRequest);
+//        this.currentRequest = copy(httpRequest);
+        this.isCurrentRequestHead = httpRequest != null && ProxyUtils.isHEAD(httpRequest);
 
         // Set up our filters based on the original request. If the HttpFiltersSource returns null (meaning the request/response
         // should not be filtered), fall back to the default no-op filter source.
-        HttpFilters filterInstance = proxyServer.getFiltersSource().filterRequest(currentRequest, ctx);
+        HttpFilters filterInstance = proxyServer.getFiltersSource().filterRequest(httpRequest, ctx);
         if (filterInstance != null) {
             currentFilters = filterInstance;
         } else {
@@ -410,8 +411,8 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
             HttpRequest currentHttpRequest, HttpResponse currentHttpResponse,
             HttpObject httpObject) {
         // we are sending a response to the client, so we are done handling this request
-        ReferenceCountUtil.safeRelease(this.currentRequest);
-        this.currentRequest = null;
+//        ReferenceCountUtil.safeRelease(this.currentRequest);
+//        this.currentRequest = null;
 
         httpObject = filters.serverToProxyResponse(httpObject);
         if (httpObject == null) {
@@ -503,7 +504,7 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
             // the idle timeout fired on the active server connection. send a timeout response to the client.
             LOG.warn("Server timed out: {}", currentServerConnection);
             currentFilters.serverToProxyResponseTimedOut();
-            writeGatewayTimeout(currentRequest);
+            writeGatewayTimeout();
         }
     }
 
@@ -1239,15 +1240,15 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      * If the Gateway Timeout is a response to an HTTP HEAD request, the response will contain no body, but the
      * Content-Length header will be set to the value it would have been if this 504 Gateway Timeout were in response to a GET.
      *
-     * @param httpRequest the HttpRequest that is resulting in the Gateway Timeout response
+//     * @param httpRequest the HttpRequest that is resulting in the Gateway Timeout response
      * @return true if the connection will be kept open, or false if it will be disconnected
      */
-    private boolean writeGatewayTimeout(HttpRequest httpRequest) {
+    private boolean writeGatewayTimeout() {
         String body = "Gateway Timeout";
         FullHttpResponse response = ProxyUtils.createFullHttpResponse(HttpVersion.HTTP_1_1,
                 HttpResponseStatus.GATEWAY_TIMEOUT, body);
 
-        if (httpRequest != null && ProxyUtils.isHEAD(httpRequest)) {
+        if (isCurrentRequestHead) {
             // don't allow any body content in response to a HEAD request
             response.content().clear();
         }
@@ -1268,7 +1269,8 @@ public class ClientToProxyConnection extends ProxyConnection<HttpRequest> {
      */
     private boolean respondWithShortCircuitResponse(HttpResponse httpResponse) {
         // we are sending a response to the client, so we are done handling this request
-        this.currentRequest = null;
+//        ReferenceCountUtil.safeRelease(this.currentRequest);
+//        this.currentRequest = null;
 
         HttpResponse filteredResponse = (HttpResponse) currentFilters.proxyToClientResponse(httpResponse);
         if (filteredResponse == null) {
