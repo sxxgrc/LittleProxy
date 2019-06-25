@@ -444,6 +444,7 @@ abstract class ProxyConnection<I extends HttpObject> extends
      */
     protected void becameWritable() {
         LOG.debug("Became writeable");
+        this.channel.flush();
     }
 
     /**
